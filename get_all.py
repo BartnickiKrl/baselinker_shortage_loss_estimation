@@ -1,9 +1,7 @@
 from pathlib import Path
 import time
 import pandas as pd
-from get_produkty import get_produkty
-from get_stany import get_stany, get_date_from_last_6_months
-from get_rotacje import get_rotacje
+from get_all_modules import *
 
 # ======================================================
 # LIMIT: max 1 request na 60 sekund
@@ -44,7 +42,7 @@ def main():
         print("\nERROR: Podane tempo wyni ponad 100 co będzie skutkować banem")
         return -53
 
-    csv_dir = Path(__file__).parent
+    csv_dir = Path("test_csv_files")
     products_csv = csv_dir / "products_list.csv"
     df_products = pd.read_csv(products_csv, sep=";") if products_csv.exists() else None
 
