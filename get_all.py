@@ -89,18 +89,10 @@ def main():
                 print("ERROR: Błąd przy pobieraniu stanów:", e)
 
     if "3" in choice:
-
-        days_input = input("\nPodaj liczbę dni wstecz do pobrania rotacji: ").strip()
-        if not days_input.isdigit():
-            print("ERROR: Niepoprawna liczba dni.")
-            return -13
-        days = int(days_input)
-
         check_rate_limit()
-        print("Rozpoczynam pobieranie danych o rotacjach\n")
         try:
             get_rotacje(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID,
-                        days=days, save_csv=True, csv_dir=csv_dir, pace=pace)
+                        save_csv=True, csv_dir=csv_dir, pace=pace)
         except Exception as e:
             print("ERROR: Błąd przy pobieraniu rotacji:", e)
 

@@ -139,6 +139,6 @@ if __name__ == "__main__":
 
     df_produkty = pd.read_csv(Path(__file__).parent/"products_list.csv", sep=";")
     try:
-        get_stany( df_produkty, get_date_from_last_6_months(), BASELINKER_API_URL, BL_TOKEN, save_csv=True, csv_dir=Path(__file__).parent )
+        get_stany( df_produkty, get_date_from_last_6_months(), BASELINKER_API_URL, BL_TOKEN, save_csv=True, csv_dir=Path(__file__).parent, pace=70 )
     except Exception as e:
         print("ERROR:", e)

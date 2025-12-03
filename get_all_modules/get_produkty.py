@@ -138,6 +138,6 @@ if __name__ == "__main__":
     INVENTORY_ID = 35072
 
     try:
-        df_products = get_produkty(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID, save_csv = True, csv_dir = Path(__file__).parent)
+        df_products = get_produkty(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID, save_csv = True, csv_dir = Path(__file__).parent, pace=70)
     except Exception as e:
         print("[ERROR MAIN]", e)
