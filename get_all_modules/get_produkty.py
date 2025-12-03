@@ -1,4 +1,6 @@
-from common_imports import *
+from .common_imports import *
+
+REQUEST_TIMESTAMPS = []
 
 def get_produkty(baselinker_api_url: str, bl_token: str, inventory_id: int,
                  save_csv: bool = True, csv_dir: Path = Path(__file__).parent, pace: int = 70) -> pd.DataFrame:
@@ -36,8 +38,8 @@ def get_produkty(baselinker_api_url: str, bl_token: str, inventory_id: int,
                     "page": page,
                     "include_variants": True}
 
-            data = bl_request("getInventoryProductsList", parameters, baselinker_api_url, bl_token)
-
+            data = bl_request("getInventoryProductsList", parameters, baselinker_api_url, bl_token, pace)
+            REQUEST_TIMESTAMPS.append(time.time())
             products_page = data.get("products") or {}
 
         except Exception as e:
@@ -76,7 +78,8 @@ def get_produkty(baselinker_api_url: str, bl_token: str, inventory_id: int,
                     "inventory_id": int(inventory_id),
                     "products": pack}
 
-            data = bl_request("getInventoryProductsData", parameters, baselinker_api_url, bl_token)
+            data = bl_request("getInventoryProductsData", parameters, baselinker_api_url, bl_token, pace)
+            REQUEST_TIMESTAMPS.append(time.time())
 
             for k, v in (data.get("products") or {}).items():
                 try:
@@ -127,7 +130,7 @@ def get_produkty(baselinker_api_url: str, bl_token: str, inventory_id: int,
 
     if save_csv and len(rows) > 0:
         df_produkty.to_csv(output_path, sep=";", index=False, encoding="utf-8")
-        print(f"Zakończono pobieranie. Plik {output_path}")
+        print(f"\nZakończono pobieranie. Plik {output_path}")
 
     return df_produkty
 

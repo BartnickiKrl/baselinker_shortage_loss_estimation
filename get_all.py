@@ -3,8 +3,8 @@ import time
 import pandas as pd
 try:
     from get_all_modules import *
-except ImportError:
-    print("ERROR: Blad importu modulu get_all_modules, sprawdz czy folder jest w odpowiednim miejscu")
+except ImportError as e:
+    print(f"ERROR: Blad importu modulu get_all_modules, sprawdz czy folder jest w odpowiednim miejscu {e}")
 
 LAST_CALL_TIME = 0
 

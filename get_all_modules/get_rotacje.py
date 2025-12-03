@@ -1,4 +1,6 @@
-from common_imports import *
+from .common_imports import *
+
+REQUEST_TIMESTAMPS = []
 
 def get_user_date_range():
     try:
@@ -7,8 +9,8 @@ def get_user_date_range():
         start_str = input(f"Data początkowa RRRR-MM-DD: ").strip()
         end_str = input(f"Data końcowa RRRR-MM-DD: ").strip()
 
-        start_date = pd.to_datetime(start_str, format="%Y-%m-%d", errors="raise").tz_localize("UTC")
-        end_date = pd.to_datetime(end_str, format="%Y-%m-%d", errors="raise").tz_localize("UTC")
+        start_date = pd.to_datetime(start_str, format="%Y-%m-%d", errors="raise")
+        end_date = pd.to_datetime(end_str, format="%Y-%m-%d", errors="raise")
 
         if end_date < start_date:
             raise ValueError("Data końcowa nie może być wcześniejsza niż początkowa.")
@@ -23,7 +25,7 @@ def get_user_date_range():
         raise SystemExit(1)
 
 
-def Avg_cost(product_ids: list, baselinker_api_url: str, bl_token: str, inventory_id: int ) -> dict:
+def Avg_cost(product_ids: list, baselinker_api_url: str, bl_token: str, inventory_id: int, pace: int ) -> dict:
     """Pobiera sredni koszt productu o danym id"""
     product_ids = list(set(product_ids))
     chunk_size = 500
@@ -31,11 +33,9 @@ def Avg_cost(product_ids: list, baselinker_api_url: str, bl_token: str, inventor
 
     for i in range(0, len(product_ids), chunk_size):
         chunk = product_ids[i:i+chunk_size]
-        method_params = {   "inventory_id": inventory_id,
-                        "products": chunk }
-        data = bl_request("getInventoryProductsData", 
-                              method_params,
-                              baselinker_api_url, bl_token)
+        method_params = {   "inventory_id": inventory_id, "products": chunk }
+        data = bl_request("getInventoryProductsData", method_params, baselinker_api_url, bl_token, pace )
+        REQUEST_TIMESTAMPS.append(time.time())
 
         for pid, pdata in data["products"].items():
             result[pid] = float(pdata.get("average_cost", 0))
@@ -61,7 +61,6 @@ def get_rotacje(baselinker_api_url: str, bl_token: str, inventory_id: int,
 
     all_orders = []
     date_confirmed_from = date_from
-    REQUEST_TIMESTAMPS = []
     while True:
 
         # wyliczamy zapytania/min
@@ -72,8 +71,8 @@ def get_rotacje(baselinker_api_url: str, bl_token: str, inventory_id: int,
 
         method_params = { "date_confirmed_from": date_confirmed_from, "get_unconfirmed_orders": False }
         # wysłanie POST
-        data = bl_request( "getOrders", method_params, baselinker_api_url, bl_token )
-        
+        data = bl_request( "getOrders", method_params, baselinker_api_url, bl_token, pace )
+        REQUEST_TIMESTAMPS.append(time.time())
         orders_in_range = [o for o in data["orders"] if o["date_confirmed"] <= date_to]
         all_orders.extend(orders_in_range)
         
@@ -91,7 +90,7 @@ def get_rotacje(baselinker_api_url: str, bl_token: str, inventory_id: int,
         for p in order.get("products", []):
             products_ids_avg.append(p["product_id"])
     try:
-        avg_costs = Avg_cost( products_ids_avg, baselinker_api_url, bl_token, inventory_id )
+        avg_costs = Avg_cost( products_ids_avg, baselinker_api_url, bl_token, inventory_id, pace )
     except Exception as e:
             print("Błąd przy pobieraniu srednich cen dla produktow:", e)
     
@@ -118,7 +117,7 @@ def get_rotacje(baselinker_api_url: str, bl_token: str, inventory_id: int,
 
     if save_csv and not df_rotacje.empty:
         df_rotacje.to_csv(output_file, sep=";", index=False, encoding="utf-8")
-        print(f"Zakończono pobieranie. Plik {output_file}")
+        print(f"\nZakończono pobieranie. Plik {output_file}")
         
     return df_rotacje
 

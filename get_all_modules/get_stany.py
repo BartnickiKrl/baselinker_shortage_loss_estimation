@@ -1,4 +1,7 @@
-from common_imports import *
+from .common_imports import *
+
+# zapis timestamp
+REQUEST_TIMESTAMPS = []
 
 def get_date_from_last_6_months() -> int:
     now = datetime.now()
@@ -61,7 +64,6 @@ def get_stany(products_ids: pd.DataFrame, date_from_ts: int, baselinker_api_url:
         page = 1
         product_stats=[]
         first_log = 1
-        REQUEST_TIMESTAMPS = []
         while True:
 
             # wyliczamy zapytania/min
@@ -81,8 +83,8 @@ def get_stany(products_ids: pd.DataFrame, date_from_ts: int, baselinker_api_url:
                 "page": int(page),
                 "type": 1 }
             
-            data = bl_request("getInventoryProductLogs", method_params, baselinker_api_url, bl_token)
-
+            data = bl_request("getInventoryProductLogs", method_params, baselinker_api_url, bl_token, pace)
+            REQUEST_TIMESTAMPS.append(time.time())
             product_stats.extend(data["logs"])
             
             # sprawdzenie czy <100 logow tzn. koniec pobierania 

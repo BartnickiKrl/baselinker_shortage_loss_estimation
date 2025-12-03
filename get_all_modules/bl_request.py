@@ -3,12 +3,11 @@ import json
 import time
 from datetime import datetime, timedelta
 try:
-    from GetExceptions import Bl_token_ban
-except ImportError:
-    print("ERROR: Blad importu modulu GetExceptions, sprawdz czy plik jest w odpowiednim miejscu")
+    from .GetExceptions import Bl_token_ban
+except ImportError as e:
+    print(f"ERROR: Blad importu modulu GetExceptions, sprawdz czy plik jest w odpowiednim miejscu {e}")
 
 # Zarządzanie czasem – proponowane 70 zapytań/min
-REQUEST_TIMESTAMPS = []
 MAX_REQUESTS = 70
 WINDOW = 60
 LAST_REQUEST = 0
@@ -20,7 +19,7 @@ def bl_request(method, method_params, api_url, token, pace, max_ban_retries=2):
     - opóźnienie 0.86s - 70/min
     - obsługa blokady tokenu
     """
-    global LAST_REQUEST, REQUEST_TIMESTAMPS, MAX_REQUESTS, MIN_INTERVAL
+    global LAST_REQUEST, MAX_REQUESTS, MIN_INTERVAL
     MAX_REQUESTS = pace
     MIN_INTERVAL = 60 / pace
 
@@ -43,9 +42,7 @@ def bl_request(method, method_params, api_url, token, pace, max_ban_retries=2):
             data = response.json()
             if data["status"] != "SUCCESS":
                 raise Bl_token_ban(data)  # korzystamy z istniejącej klasy
-
-            # zapis timestamp
-            REQUEST_TIMESTAMPS.append(time.time())
+            
             return data
 
         except Bl_token_ban as ban:
