@@ -44,8 +44,11 @@ def main():
         pace = int(input("Podaj maksymalne tempo zapytań na minute (<100): "))
         if not isinstance(pace, int) or pace >= 100:
             raise Exception("\nPodane tempo wynosi ponad 100 co będzie skutkować banem")
-    except Exception as e:
-        print("ERROR: ", e)
+    except TypeError:
+        print("Podane tempo jest niepoprawnego typu, upewnij sie ze podajesz liczbe dziesietna")
+    except ValueError:
+        print("Podane tempo jest wieksze od 100 co skutkowaloby banem nawet do kilkunastu minut, upewnij sie ze podajesz tempo < 100")
+
 
     csv_dir = Path("downloaded_csv_files")
     csv_dir.mkdir(parents=True, exist_ok=True)
