@@ -130,7 +130,7 @@ def get_stany(products_ids: pd.DataFrame, date_from_ts: int, baselinker_api_url:
 
     if save_csv and not df_stany.empty:
         df_stany.to_csv(output_file, sep=";", index=False, encoding="utf-8")
-        print(f"Zakończono pobieranie. Plik {output_file}")
+        print(f"Zakończono pobieranie. Plik {output_file.name}")
 
     return df_stany
 

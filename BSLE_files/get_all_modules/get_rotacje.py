@@ -117,7 +117,7 @@ def get_rotacje(baselinker_api_url: str, bl_token: str, inventory_id: int,
 
     if save_csv and not df_rotacje.empty:
         df_rotacje.to_csv(output_file, sep=";", index=False, encoding="utf-8")
-        print(f"\nZakończono pobieranie. Plik {output_file}")
+        print(f"\nZakończono pobieranie. Plik {output_file.name}")
         
     return df_rotacje
 

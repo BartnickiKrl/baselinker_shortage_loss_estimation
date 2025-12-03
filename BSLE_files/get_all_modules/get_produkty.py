@@ -130,7 +130,7 @@ def get_produkty(baselinker_api_url: str, bl_token: str, inventory_id: int,
 
     if save_csv and len(rows) > 0:
         df_produkty.to_csv(output_path, sep=";", index=False, encoding="utf-8")
-        print(f"\nZakończono pobieranie. Plik {output_path}")
+        print(f"\nZakończono pobieranie. Plik {output_path.name}")
 
     return df_produkty
 

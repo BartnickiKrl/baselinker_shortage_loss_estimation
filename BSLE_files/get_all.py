@@ -2,7 +2,7 @@ from pathlib import Path
 import time
 import pandas as pd
 try:
-    from get_all_modules import *
+    from .get_all_modules import *
 except ImportError as e:
     print(f"ERROR: Blad importu modulu get_all_modules, sprawdz czy folder jest w odpowiednim miejscu {e}")
 
@@ -26,7 +26,7 @@ def check_rate_limit():
     LAST_CALL_TIME = time.time()
 
 
-def main():
+def get_all():
 
     # ==============================================================
     BASELINKER_API_URL = "https://api.baselinker.com/connector.php"
@@ -50,7 +50,7 @@ def main():
         print("Podane tempo jest wieksze od 100 co skutkowaloby banem nawet do kilkunastu minut, upewnij sie ze podajesz tempo < 100")
 
 
-    csv_dir = Path("downloaded_csv_files")
+    csv_dir = Path(__file__).parent / "downloaded_csv_files"
     csv_dir.mkdir(parents=True, exist_ok=True)
     products_csv = csv_dir / "products_list.csv"
     df_products = pd.read_csv(products_csv, sep=";") if products_csv.exists() else None
@@ -60,21 +60,18 @@ def main():
         check_rate_limit()
         print("\nRozpoczynam pobieranie listy produktow")
         try:
-            df_products = get_produkty(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID,
-                                       save_csv=True, csv_dir=csv_dir, pace=pace)
+            df_products = get_produkty(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID, save_csv=True, csv_dir=csv_dir, pace=pace)
         except Exception as e:
             print("ERROR: Błąd przy pobieraniu produktów:", e)
 
     if "2" in choice:
         if df_products is None and input(
-            f"Nie znaleziono istniejącego pliku ({products_csv}). Pobrac go? [T/N]: "
-        ).strip().lower() == "t":
+            f"Nie znaleziono istniejącego pliku ({products_csv}). Pobrac go? [T/N]: ").strip().lower() == "t":
 
             check_rate_limit()
             print("\nRozpoczynam pobieranie listy produktow")
             try:
-                df_products = get_produkty(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID,
-                                           save_csv=True, csv_dir=csv_dir, pace=pace)
+                df_products = get_produkty(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID, save_csv=True, csv_dir=csv_dir, pace=pace)
             except Exception as e:
                 print("ERROR: Błąd przy pobieraniu produktów:", e)
                 df_products = None
@@ -83,19 +80,17 @@ def main():
             check_rate_limit()
             print("\nRozpoczynam pobieranie danych o stanach - to moze chwile potrwac\n")
             try:
-                get_stany(df_products, get_date_from_last_6_months(),
-                          BASELINKER_API_URL, BL_TOKEN, save_csv=True, csv_dir=csv_dir, pace=pace)
+                get_stany(df_products, get_date_from_last_6_months(), BASELINKER_API_URL, BL_TOKEN, save_csv=True, csv_dir=csv_dir, pace=pace)
             except Exception as e:
                 print("ERROR: Błąd przy pobieraniu stanów:", e)
 
     if "3" in choice:
         check_rate_limit()
         try:
-            get_rotacje(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID,
-                        save_csv=True, csv_dir=csv_dir, pace=pace)
+            get_rotacje(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID, save_csv=True, csv_dir=csv_dir, pace=pace)
         except Exception as e:
             print("ERROR: Błąd przy pobieraniu rotacji:", e)
 
 
 if __name__ == "__main__":
-    main()
+    get_all()
