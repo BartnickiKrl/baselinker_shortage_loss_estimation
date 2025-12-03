@@ -6,21 +6,25 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
-project_dir = Path(__file__).parent  # katalog, w którym jest plik .py
-rotacje_path = Path(f"{project_dir}/rotacje_2025-10-02.csv")
-stany_path = Path(f"{project_dir}/stany_2025-06-04.csv")
-product_path = Path(f"{project_dir}/products_list.csv")
+project_dir = Path("downloaded_csv_files")
+if not project_dir.exists():
+    project_dir = Path("test_csv_files")  # katalog z testowymi plikami
+    print("NIE ZNALEZIONO FOLDERU \"downloaded_csv_files\": ANALIZA NA TESTOWYCH PLIKACH")
+
+rotacje_path = next(project_dir.glob("rotacje_*.csv"), None)
+stany_path = next(project_dir.glob("stany_*.csv"), None)
+product_path = next(project_dir.glob("product_list.csv"), None)
 
 #============================================================================================================
 # Zgranie danych z rotacje.csv i stany.csv i product_list do DataFrame
 #============================================================================================================
 try:
     if not rotacje_path.exists():
-        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku z rotacjami o nazwie info_o_rotacjach_produktów.csv: {rotacje_path.resolve()}")
+        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku z rotacjami o nazwie zwierajacej rotacje.csv: {rotacje_path.resolve()}")
     if not stany_path.exists():
-        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku ze stanami o nazwie stany_produktów.csv: {stany_path.resolve()}")
+        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku ze stanami o nazwie zwierajacej stany.csv: {stany_path.resolve()}")
     if not product_path.exists():
-        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku ze stanami o nazwie stany_produktów.csv: {stany_path.resolve()}")
+        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku ze stanami o nazwie product_list.csv: {stany_path.resolve()}")
     
     df_product = pd.read_csv(product_path, sep=";")
     df_rotacje = pd.read_csv(rotacje_path, sep=";")

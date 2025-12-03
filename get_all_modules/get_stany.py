@@ -108,7 +108,7 @@ def get_stany(products_ids: pd.DataFrame, date_from_ts: int, baselinker_api_url:
         return pd.DataFrame()
 
     # DIRECTORY
-    output_file = csv_dir / f"stany_{datetime.fromtimestamp(date_from_ts).strftime('%Y-%m-%d')}.csv"
+    output_file = csv_dir / f"stany_from_{datetime.fromtimestamp(date_from_ts).strftime('%Y-%m-%d')}.csv"
 
     rpm = 0
     stany_rows = []

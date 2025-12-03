@@ -42,7 +42,8 @@ def main():
         print("\nERROR: Podane tempo wyni ponad 100 co będzie skutkować banem")
         return -53
 
-    csv_dir = Path("test_csv_files")
+    csv_dir = Path("downloaded_csv_files")
+    csv_dir.mkdir(parents=True, exist_ok=True)
     products_csv = csv_dir / "products_list.csv"
     df_products = pd.read_csv(products_csv, sep=";") if products_csv.exists() else None
 
