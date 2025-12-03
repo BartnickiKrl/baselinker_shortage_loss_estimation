@@ -1,8 +1,10 @@
 from pathlib import Path
 import time
 import pandas as pd
-from get_all_modules import *
-
+try:
+    from get_all_modules import *
+except ImportError:
+    print("ERROR: Blad importu modulu get_all_modules, sprawdz czy folder jest w odpowiednim miejscu")
 
 LAST_CALL_TIME = 0
 
