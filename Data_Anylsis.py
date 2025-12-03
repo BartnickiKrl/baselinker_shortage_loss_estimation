@@ -6,34 +6,62 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore", category=pd.errors.PerformanceWarning)
 
+#============================================================================================================
+# Wybór plików
+#============================================================================================================
+
+def choose_file(name: str, files: list[Path]) -> Path:
+    print(f"\nZnaleziono kilka plikow dla {name}: ")
+    for i,file in zip(range(len(files)),files):
+        print(f"{i}. {file.name}")
+
+    the_one = int(input("\nWybierz numer z odpowiednim plikiem: "))
+    if the_one >= len(files) or the_one < 0:
+        raise ValueError("\nERROR: Niepoprawny indeks pliku")
+    return files[the_one]
+
 project_dir = Path("downloaded_csv_files")
 if not project_dir.exists():
     project_dir = Path("test_csv_files")  # katalog z testowymi plikami
-    print("NIE ZNALEZIONO FOLDERU \"downloaded_csv_files\": ANALIZA NA TESTOWYCH PLIKACH")
+    print("\nNIE ZNALEZIONO FOLDERU \"downloaded_csv_files\": ANALIZA NA TESTOWYCH PLIKACH")
 
-rotacje_path = next(project_dir.glob("rotacje_*.csv"), None)
-stany_path = next(project_dir.glob("stany_*.csv"), None)
-product_path = next(project_dir.glob("product_list.csv"), None)
+rotacje_files = [file for file in project_dir.glob("rotacje*.csv")]
+stany_files = [file for file in project_dir.glob("stany*.csv")]
+product_files = [file for file in project_dir.glob("products_list*.csv")]
 
-#============================================================================================================
-# Zgranie danych z rotacje.csv i stany.csv i product_list do DataFrame
-#============================================================================================================
 try:
+    if len(rotacje_files) == 0:
+        raise FileNotFoundError(f"Brak plików zawierajacych rotacje.csv w folderze {project_dir}")
+
+    if len(stany_files) == 0:
+        raise FileNotFoundError(f"Brak plików zawierajacych stany.csv w folderze {project_dir}")
+
+    if len(product_files) == 0:
+        raise FileNotFoundError(f"Brak plików zawierajacych product_list.csv w folderze {project_dir}")
+
+    rotacje_path = choose_file('Rotacji', rotacje_files) if len(rotacje_files) > 1 else rotacje_files[0]
     if not rotacje_path.exists():
-        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku z rotacjami o nazwie zwierajacej rotacje.csv: {rotacje_path.resolve()}")
+        raise FileNotFoundError(f"Nie znaleziono pliku z rotacjami o nazwie zwierajacej rotacje.csv: {rotacje_path.resolve()}")
+    
+    stany_path = choose_file('Stanow', stany_files) if len(stany_files) > 1 else stany_files[0]
     if not stany_path.exists():
-        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku ze stanami o nazwie zwierajacej stany.csv: {stany_path.resolve()}")
+        raise FileNotFoundError(f"Nie znaleziono pliku ze stanami o nazwie zwierajacej stany.csv: {stany_path.resolve()}")
+    
+    product_path = choose_file('Produktow', product_files) if len(product_files) > 1 else product_files[0]
     if not product_path.exists():
-        raise FileNotFoundError(f"ERROR: Nie znaleziono pliku ze stanami o nazwie product_list.csv: {stany_path.resolve()}")
+        raise FileNotFoundError(f"Nie znaleziono pliku ze stanami o nazwie product_list.csv: {stany_path.resolve()}")
     
     df_product = pd.read_csv(product_path, sep=";")
     df_rotacje = pd.read_csv(rotacje_path, sep=";")
     df_stany   = pd.read_csv(stany_path, sep=";")
 
+except Exception as e:
+    print(f"ERROR: {e}")
+    raise SystemExit(5)
 
-except FileNotFoundError as e:
-    print(f"[BŁĄD] {e}")
-    raise SystemExit(1)
+#============================================================================================================
+# Zgranie danych z rotacje.csv i stany.csv i product_list do DataFrame
+#============================================================================================================
 
 # KONWERSJA KOLUMN NA DATETIME
 df_rotacje["date"] = pd.to_datetime(df_rotacje["date"], format="%Y-%m-%d", errors="coerce", utc=True)
