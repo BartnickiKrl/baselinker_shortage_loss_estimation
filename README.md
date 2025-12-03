@@ -1,5 +1,11 @@
-# Estymowanie strat poniesionych przez braki dostępności produktów na podstawie danych z Baselinker
+## BSLE - BASELINKER SHORTAGE LOSS ESTIMATOR
 
+Installacja programu jest bardzo proste – należy pobrać **folder `BSLE_files`** oraz plik wykonawczy **`BSLE.py`**.  
+Następnie, po uruchomieniu `BSLE.py`, program w intuicyjny sposób przeprowadzi nas przez Baselinkera do ostatecznych wyników.
+
+## Działanie programu:
+
+Program korzysta z dwóch rozbudowanych modułów:
 
 ## get_all.py – menedżer pobierania danych
 
