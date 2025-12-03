@@ -1,4 +1,4 @@
-# Estymowanie start poniesionych przez braki dostępności produktów na podstawie danych z Baselinker
+# Estymowanie strat poniesionych przez braki dostępności produktów na podstawie danych z Baselinker
 
 
 ## get_all.py – menedżer pobierania danych
