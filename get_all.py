@@ -3,23 +3,25 @@ import time
 import pandas as pd
 from get_all_modules import *
 
-# ======================================================
-# LIMIT: max 1 request na 60 sekund
-# ======================================================
+
 LAST_CALL_TIME = 0
 
 def check_rate_limit():
+    '''
+    Sprawdza czy inna funkcja nie działała w tej samej minucie,
+    aby uniknąć nawarstwianania się requestów różnych funkcji 
+    co nie może być kontrolowane wewnątrz.
+    '''
     global LAST_CALL_TIME
 
     now = time.time()
     elapsed = now - LAST_CALL_TIME
 
     if elapsed < 60:
-        wait = int(60 - elapsed)
+        wait = int(60 - elapsed + 5)
         time.sleep(wait)
 
     LAST_CALL_TIME = time.time()
-
 
 
 def main():
@@ -27,7 +29,6 @@ def main():
     # ==============================================================
     BASELINKER_API_URL = "https://api.baselinker.com/connector.php"
     BL_TOKEN = input("Token Baselinker: ")
-
     INVENTORY_ID = input("Inventory ID: ")
     # ==============================================================
 
@@ -37,10 +38,12 @@ def main():
     print("3 - Rotacje")
     choice = input("Twój wybór (np. 13 / 123): ").strip()
 
-    pace = int(input("Podaj maksymalne tempo zapytań na minute (<100): "))
-    if not isinstance(pace, int) or pace >= 100:
-        print("\nERROR: Podane tempo wyni ponad 100 co będzie skutkować banem")
-        return -53
+    try:
+        pace = int(input("Podaj maksymalne tempo zapytań na minute (<100): "))
+        if not isinstance(pace, int) or pace >= 100:
+            raise Exception("\nPodane tempo wynosi ponad 100 co będzie skutkować banem")
+    except Exception as e:
+        print("ERROR: ", e)
 
     csv_dir = Path("downloaded_csv_files")
     csv_dir.mkdir(parents=True, exist_ok=True)
