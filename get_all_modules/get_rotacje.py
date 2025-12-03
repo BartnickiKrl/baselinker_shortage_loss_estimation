@@ -57,7 +57,7 @@ def get_rotacje(baselinker_api_url: str, bl_token: str, inventory_id: int,
     MIN_INTERVAL = 60 / pace
 
     # DIRECTORY
-    output_file = csv_dir / f"rotacje_from_{datetime.fromtimestamp(date_from).strftime('%Y-%m-%d')}.csv"
+    output_file = csv_dir / f"rotacje_from_{datetime.fromtimestamp(date_from).strftime('%Y-%m-%d')}to_{datetime.fromtimestamp(date_to).strftime('%Y-%m-%d')}.csv"
 
     all_orders = []
     date_confirmed_from = date_from
