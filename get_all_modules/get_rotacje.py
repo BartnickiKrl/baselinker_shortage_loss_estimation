@@ -4,33 +4,32 @@ from datetime import datetime, timedelta
 from pathlib import Path
 import pandas as pd
 import time
-# json obsluga bledow try except
+from GetExceptions import Bl_token_ban
 
-# Zarządzanie czasem – 70 zapytań/min
+# Zarządzanie czasem – proponowane 70 zapytań/min
 REQUEST_TIMESTAMPS = []
 MAX_REQUESTS = 70
 WINDOW = 60
 LAST_REQUEST = 0
-MIN_INTERVAL = 60 / MAX_REQUESTS    # 0.857 sekundy
+MIN_INTERVAL = 60 / MAX_REQUESTS    # np 0.857 sekundy
 
-def bl_request(method, method_params, api_url, token):
+def bl_request(method, method_params, api_url, token, max_ban_retries=2):
     """
     Zapytanie do BaseLinkera
     - opóźnienie 0.86s - 70/min
-    - 3 retry (1s, 5s, 5s)
+    - obsługa blokady tokenu
     """
     global LAST_REQUEST, REQUEST_TIMESTAMPS
 
-    # bezpieczne stałe tempo 70/min
     now = time.time()
     elapsed = now - LAST_REQUEST
     if elapsed < MIN_INTERVAL:
         time.sleep(MIN_INTERVAL - elapsed)
-
     LAST_REQUEST = time.time()
-    backoff_times = [1, 5, 5]
 
-    for attempt in range(4):
+    ban_attempt = 0
+
+    while ban_attempt < max_ban_retries:
         try:
             headers = {"X-BLToken": token}
             api_params = {"method": method, "parameters": json.dumps(method_params)}
@@ -40,20 +39,40 @@ def bl_request(method, method_params, api_url, token):
 
             data = response.json()
             if data["status"] != "SUCCESS":
-                raise RuntimeError(f"BL META ERROR: {data}")
+                raise Bl_token_ban(data)  # korzystamy z istniejącej klasy
 
-            # zapisz timestamp
+            # zapis timestamp
             REQUEST_TIMESTAMPS.append(time.time())
             return data
 
-        except Exception as e:
-            if attempt == 3:
-                raise
+        except Bl_token_ban as ban:
+            if ban.wait_till == -1:
+                print(f"\nERROR: niepowodzenie ze strony API: {ban.why}")
+                raise RuntimeError
+            else:
+                # czas do końca blokady + 30s bufora
+                delay = (ban.wait_till - datetime.now() + timedelta(seconds=30)).total_seconds()
+                if delay > 0:
+                    print(f"\nToken zablokowany na {delay:.0f} sekund. Czekam i ponawiam próbę.")
+                    start_time = time.time()
+                    while True:
+                        remaining = delay - (time.time() - start_time)
+                        if remaining <= 0:
+                            break
+                        print(f"\rDo końca bana pozostało: {int(remaining)}s", end="", flush=True)
+                        time.sleep(10)
+                print("\nToken odblokowany. Ponawiam próbę.")
+                ban_attempt += 1
 
-            # (1s, 5s, 5s)
-            time.sleep(backoff_times[attempt])
+    # jeśli ban nie ustąpił po max_ban_retries
+    print("\nERROR: przeczekanie bana nie przyniosło rezultatów, spróbuj ponownie później")
+    raise RuntimeError
+
 
 def get_date_from(days:int = 180) -> int:
+    """
+    Zwraca date jako unixowy int {days} dni temu
+    """
     now = datetime.now()
     date_from = now - timedelta(days=days)
     return int(date_from.timestamp())
