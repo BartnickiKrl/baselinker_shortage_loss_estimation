@@ -136,11 +136,4 @@ def get_stany(products_ids: pd.DataFrame, date_from_ts: int, baselinker_api_url:
 
 
 if __name__ == "__main__":
-    BASELINKER_API_URL = "https://api.baselinker.com/connector.php"
-    BL_TOKEN = "5004221-5013195-GBT19RBZAAJG4AKIFRAG9547IT7X7QV6L4K47L40RC5TDX64NZ852KP2VYL4E65B"
-
-    df_produkty = pd.read_csv(Path(__file__).parent/"products_list.csv", sep=";")
-    try:
-        get_stany( df_produkty, get_date_from_last_6_months(), BASELINKER_API_URL, BL_TOKEN, save_csv=True, csv_dir=Path(__file__).parent, pace=70 )
-    except Exception as e:
-        print("ERROR:", e)
+    pass

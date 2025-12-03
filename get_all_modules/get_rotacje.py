@@ -123,11 +123,4 @@ def get_rotacje(baselinker_api_url: str, bl_token: str, inventory_id: int,
 
 
 if __name__ == "__main__":
-    BASELINKER_API_URL = "https://api.baselinker.com/connector.php"
-    BL_TOKEN = "5004221-5013195-GBT19RBZAAJG4AKIFRAG9547IT7X7QV6L4K47L40RC5TDX64NZ852KP2VYL4E65B"
-    INVENTORY_ID = 35072
-
-    try:
-        get_rotacje(BASELINKER_API_URL, BL_TOKEN, INVENTORY_ID, save_csv=True, csv_dir=Path(__file__).parent, pace=70 )
-    except Exception as e:
-        print("ERROR:", e)
+    pass
