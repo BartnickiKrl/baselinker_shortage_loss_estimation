@@ -1,73 +1,4 @@
-import requests
-import json
-from datetime import datetime, timedelta
-from pathlib import Path
-import pandas as pd
-import time
-from GetExceptions import Bl_token_ban
-
-# Zarządzanie czasem – proponowane 70 zapytań/min
-REQUEST_TIMESTAMPS = []
-MAX_REQUESTS = 70
-WINDOW = 60
-LAST_REQUEST = 0
-MIN_INTERVAL = 60 / MAX_REQUESTS    # np 0.857 sekundy
-
-def bl_request(method, method_params, api_url, token, max_ban_retries=2):
-    """
-    Zapytanie do BaseLinkera
-    - opóźnienie 0.86s - 70/min
-    - obsługa blokady tokenu
-    """
-    global LAST_REQUEST, REQUEST_TIMESTAMPS
-
-    now = time.time()
-    elapsed = now - LAST_REQUEST
-    if elapsed < MIN_INTERVAL:
-        time.sleep(MIN_INTERVAL - elapsed)
-    LAST_REQUEST = time.time()
-
-    ban_attempt = 0
-
-    while ban_attempt < max_ban_retries:
-        try:
-            headers = {"X-BLToken": token}
-            api_params = {"method": method, "parameters": json.dumps(method_params)}
-
-            response = requests.post(api_url, data=api_params, headers=headers, timeout=30)
-            response.raise_for_status()
-
-            data = response.json()
-            if data["status"] != "SUCCESS":
-                raise Bl_token_ban(data)  # korzystamy z istniejącej klasy
-
-            # zapis timestamp
-            REQUEST_TIMESTAMPS.append(time.time())
-            return data
-
-        except Bl_token_ban as ban:
-            if ban.wait_till == -1:
-                print(f"\nERROR: niepowodzenie ze strony API: {ban.why}")
-                raise RuntimeError
-            else:
-                # czas do końca blokady + 30s bufora
-                delay = (ban.wait_till - datetime.now() + timedelta(seconds=30)).total_seconds()
-                if delay > 0:
-                    print(f"\nToken zablokowany na {delay:.0f} sekund. Czekam i ponawiam próbę.")
-                    start_time = time.time()
-                    while True:
-                        remaining = delay - (time.time() - start_time)
-                        if remaining <= 0:
-                            break
-                        print(f"\rDo końca bana pozostało: {int(remaining)}s", end="", flush=True)
-                        time.sleep(10)
-                print("\nToken odblokowany. Ponawiam próbę.")
-                ban_attempt += 1
-
-    # jeśli ban nie ustąpił po max_ban_retries
-    print("\nERROR: przeczekanie bana nie przyniosło rezultatów, spróbuj ponownie później")
-    raise RuntimeError
-
+from common_imports import *
 
 def get_date_from_last_6_months() -> int:
     now = datetime.now()
@@ -113,10 +44,6 @@ def make_row( date: datetime, id, sku, ean, prev_stock_str, new_stock_str) -> li
 def get_stany(products_ids: pd.DataFrame, date_from_ts: int, baselinker_api_url: str, bl_token: str,
                save_csv: bool = True, csv_dir: Path = Path(__file__).parent, pace: int = 70 ) -> pd.DataFrame: 
 
-    global MAX_REQUESTS, MIN_INTERVAL
-    MAX_REQUESTS = pace
-    MIN_INTERVAL = 60 / pace
-
     timer = time.time()
 
     if products_ids.empty:
@@ -134,6 +61,7 @@ def get_stany(products_ids: pd.DataFrame, date_from_ts: int, baselinker_api_url:
         page = 1
         product_stats=[]
         first_log = 1
+        REQUEST_TIMESTAMPS = []
         while True:
 
             # wyliczamy zapytania/min
