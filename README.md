@@ -1,6 +1,12 @@
-## BSLE - BASELINKER SHORTAGE LOSS ESTIMATOR
+# BSLE - BASELINKER SHORTAGE LOSS ESTIMATOR
 
-Installacja programu jest bardzo proste – należy pobrać **folder `BSLE_files`** oraz plik wykonawczy **`BSLE.py`**.  
+Choose language / Wybierz język:
+* [English](#english)
+* [Polski](#polski)
+
+
+## Polski
+Installacja programu jest bardzo prosta – należy pobrać **folder `BSLE_files`** oraz plik wykonawczy **`BSLE.py`**.  
 Następnie, po uruchomieniu `BSLE.py`, program w intuicyjny sposób przeprowadzi nas przez Baselinkera do ostatecznych wyników.
 
 ## Działanie programu:
@@ -110,7 +116,113 @@ Plik `Data_Analysis.py` sam wyszuka potrzebne pliki oraz przeprowadzi analizę n
 1. `products_cut.csv` – zawiera produkty bez danych o rotacji, ponieważ nie można było użyć ich w analizie  
 2. `rotacje_cut.csv` – zawiera listę produktów, dla których znaleziono rotacje, jednak nie ma dla nich danych o stanach  
 
+________________________________________________________________________________________________________________________________
+
+
+## English
+
+Installation is straightforward – download the **`BSLE_files` folder** and the **`BSLE.py`** executable file.  
+Once launched, `BSLE.py` intuitively guides the user through the Baselinker integration to the final results.
+
+## How it works
+
+The program utilizes two comprehensive modules:
+
+### get_all.py – Data Download Manager
+
+The `get_all.py` file manages data retrieval via API, collecting information on products and orders stored in Baselinker.
+
+- **User input:**
+  - API Token
+  - Inventory ID
+- Users can select specific files to download  
+  *(it is recommended to select option "123" – all files – for the first run)*
+
+#### Available files:
+
+1. **product_list.csv** `[id;ean;sku;name]`  
+   - A complete list of all products.
+
+2. **stany.csv** `[date;id;sku;ean;stock_before;stock_after]`  
+   - A log of all stock level changes for products from `product_list`.  
+   - Data is retrieved for the last 6 months (Baselinker API limit).  
+   - **Possible statuses:** - `"active"` – offer is live, product in stock.  
+     - `"closed"` – offer ended, product out of stock.  
+     - `"warm-up"` – the first 24h after restocking a product that was previously `"closed"`.
+
+3. **rotacje.csv** `[product_id;variant_id;rotation_qty;unit_price_brutto;purchase_cost;date;weekday;hour]`  
+   - A list of all product orders over a user-defined period (number of days).
+
+#### Request Settings:
+
+- User-defined request rate (requests per minute).  
+- Rates exceeding 100/min may result in a temporary API ban on the Baselinker account.  
+- A limit of 70 is recommended if other requests are running in the background.
+
+#### Additional Features:
+
+- Real-time request-per-minute counter.  
+- Estimated time remaining for stock data downloads due to the time-consuming nature of the operation.
+
 ---
+
+### Data_Analysis.py – Data Analysis Engine
+
+`Data_Analysis.py` automatically locates the required files and performs an in-depth analysis.
+
+- User-selectable date range for the analysis.  
+- Option to set different date ranges for rotations and stock levels.  
+- Larger date ranges for rotation data significantly increase the precision of the results.
+
+### Analysis Results
+
+#### 1. Detailed Report  
+`analysis_for_stany_[start_date]_rotacje_[start_date]_at_[HHMMSS].csv`  
+- Contains comprehensive analysis results across 182 columns.  
+
+**Rotation columns:**
+- `d1h1` – average rotation for each product `[rotation quantity, total revenue, total costs]`.  
+  - Average = total / occurrences of a specific day and hour within the date range.  
+  - Breakdown by every hour of every weekday (e.g., `d1_h3` – day 1, 3:00 AM).
+- `d1_total` – sum of all 24 hours for a given day (`d1_total = d1_h0 + d1_h1 + … + d1_h23`).  
+- `period_total` – overall statistics for each product throughout the entire rotation date range.  
+
+**Stock columns:**
+- `status_durations` – names of statuses assigned to a product within the selected range, including their duration (total hours equal the selected timeframe).  
+- `total_loss` – identifies lost revenue based on sales patterns:  
+  - For the entire duration a product was inactive, the system calculates average sales/rotation for those specific hours and days.  
+  - Results are aggregated: 100% loss value for `"closed"` status, 50% for `"warm-up"` status.
+
+*The second row contains the sum of every numeric column.*
+
+#### 2. Statistical Summary  
+`stats_stany_[start_date]_rotacje_[start_date].csv`  
+- A summarized version of the results in 14 columns for easier interpretation.  
+
+**Per product:**
+- `closed_count` – number of separate `"closed"` status occurrences.  
+- `activated_count` – number of separate `"active"` status occurrences.  
+- `avg_closed_duration` – average time an offer remained in the `"closed"` state.  
+- `avg_active_duration` – average time an offer remained in the `"active"` state.  
+
+**Rotation Breakdown (from `period_total`):**
+- `total_rotation`  
+- `total_revenue`  
+- `total_cost`  
+
+**Loss Breakdown (from `total_loss`):**
+- `lost_rotations`  
+- `lost_revenue`  
+- `lost_cost`  
+
+*The second row contains the sum of every numeric column.*
+
+---
+
+### Supplementary Files
+
+1. `products_cut.csv` – products excluded from the analysis due to lack of rotation data.  
+2. `rotacje_cut.csv` – products with found rotations but missing stock level data.
 
 ## Copyright
 
